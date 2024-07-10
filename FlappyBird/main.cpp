@@ -2,6 +2,19 @@
 #include <raymath.h>
 #include <locale.h>
 
+typedef struct Canos {
+    Rectangle rec;
+    Texture2D texturaCano;
+    float scale;
+    Color color;
+    bool active;
+} Canos;
+
+typedef struct Animal {
+    Rectangle texturaRect;
+    Texture2D texturaAnimal;// = LoadTexture("personagem.png");
+} Animal;
+    
 int main() {
 
     const int width = 800;
@@ -14,16 +27,24 @@ int main() {
     
     Rectangle boxA = { GetScreenWidth()/2.0f - 30, GetScreenHeight()/2.0f - 30, 60, 60 };
     
-    typedef struct Canos {
-        Rectangle rec;
-        Color color;
-        bool active;
-    } Canos;
-   
+    Canos cano;
+    cano.texturaCano = LoadTexture("cano.png");
     static Canos canos[200] = { 0 };
     static Vector2 canosPos[100] = { 0 };
     static int canosVelocidadeX = 0;
     
+    Animal animal;
+    animal.texturaAnimal = LoadTexture("personagem.png");
+    animal.texturaRect.width = 80;
+    animal.texturaRect.height = 180;
+    animal.texturaRect.x = X;
+    animal.texturaRect.y = Y;
+    
+    for (int i = 0; i < 100; i++){
+        canosPos[i].x = 600 + 380*i; //distancia inicial do tubo para a bola + distancia dos tubos entre si * ?
+        canosPos[i].y = -GetRandomValue(0, 150); //posicionamento do y de cima, consequentemente o lugar do buraco dos tubos
+    }
+            
     int boxASpeedX = 4;
     Rectangle boxCollision = { 0 };
     int screenUpperLimit = 40;
@@ -33,17 +54,13 @@ int main() {
     bool collisionB = false;
     bool collisionC = false;    
      
-    InitWindow(width, height, "Flappy Bird");
+    InitWindow(width, height, "Flappy AasdasdaBird");
     SetTargetFPS(60);
  
-    Texture2D textura = LoadTexture("personagem.png");
-    
-    /*
-    Rectangle rect = { GetScreenWidth()/2.0f - 30, GetScreenHeight()/2.0f - 30, 60, 60 };
-    Vector2 posicaoTextura = { X, Y };
-    Rectangle texturaRect = { posicaoTextura.x, posicaoTextura.y, (float)textura.width, (float)textura.height };
-    */
-       
+    //Texture 2D textura = LoadTexture("personagem.png");
+    //Rectangle texturaRect = {X, Y, textura.width, textura.height};
+    //ultimo parametro eh oq fode o role
+
     while (!WindowShouldClose()) {
   
         if (!pause) {
@@ -51,42 +68,41 @@ int main() {
             canosVelocidadeX = 2;
             for (int i = 0; i < 100; i++) canosPos[i].x -=canosVelocidadeX;
 
+            
             for (int i = 0; i < 200; i += 2){
-                canos[i].rec.x = canosPos[i/2].x;
-                canos[i+1].rec.x = canosPos[i/2].x;
-            }
+            canos[i].rec.x = canosPos[i/2].x;
+            canos[i].rec.y = canosPos[i/2].y;
+            canos[i].rec.width = 100; //larguta do tubo de cima
+            canos[i].rec.height = 300; //altura tubo de cima
+
+            canos[i+1].rec.x = canosPos[i/2].x;
+            canos[i+1].rec.y = 600 + canosPos[i/2].y - 0; //distancia do tubo de baixo começar + buraco - a altura do tubo de baixo
+            canos[i+1].rec.width = 100; //larguta do tubo de baixo
+            canos[i+1].rec.height = 300; //altura tubo de baixo
+
+            canos[i/2].active = true;
+        }
         }
         
         if (((boxA.x + boxA.width) >= GetScreenWidth()) || (boxA.x <= 0)) boxASpeedX *= -1;
         
         boxA.x = GetMouseX() - boxA.width/2;
         boxA.y = GetMouseY() - boxA.height/2;
+        
+        animal.texturaRect.x = X;
+        animal.texturaRect.y = Y;
         /*
         texturaRect.x = posicaoTextura.x;
         texturaRect.y = posicaoTextura.y;
         */
-
-        for (int i = 0; i < 200; i += 2){
-            canos[i].rec.x = canosPos[i/2].x;
-            canos[i].rec.y = canosPos[i/2].y;
-            canos[i].rec.width = 80; //larguta do tubo de cima
-            canos[i].rec.height = 300; //altura tubo de cima
-
-            canos[i+1].rec.x = canosPos[i/2].x;
-            canos[i+1].rec.y = 600 + canosPos[i/2].y - 150; //distancia do tubo de baixo começar + buraco - a altura do tubo de baixo
-            canos[i+1].rec.width = 80; //larguta do tubo de baixo
-            canos[i+1].rec.height = 300; //altura tubo de baixo
-
-            canos[i/2].active = true;
-        }
         
         //colisoes
         for (int i = 0; i < 200; i++){
-            //collisionB = CheckCollisionRecs(boxA, canoCima);
+            collisionB = CheckCollisionRecs(animal.texturaRect, canos[i].rec);
             collisionC = CheckCollisionRecs(boxA, canos[i].rec);
             if (collisionB) {
                 boxCollision = GetCollisionRec(boxA, canos[i].rec);
-                //boxCollision = GetCollisionRec(texturaRect, canoCima);
+                boxCollision = GetCollisionRec(animal.texturaRect, canos[i].rec);
                 vivo = false;
             }
             if (collisionC) {
@@ -121,11 +137,11 @@ int main() {
                 Y = 30;
                 velocidade = 0;
                 vivo = true;
-            }
+            }/*
             for (int i = 0; i < 100; i++){
-                canosPos[i].x = 400 + 280*i; //distancia inicial do tubo para a bola + distancia dos tubos entre si * ?
-                canosPos[i].y = -GetRandomValue(0, 120); //posicionamento do y de cima, consequentemente o lugar do buraco dos tubos
-            }
+                canosPos[i].x = 600 + 380*i; //distancia inicial do tubo para a bola + distancia dos tubos entre si * ?
+                canosPos[i].y = -GetRandomValue(0, 150); //posicionamento do y de cima, consequentemente o lugar do buraco dos tubos
+            }*/
         }
 
         BeginDrawing();
@@ -140,8 +156,8 @@ int main() {
         }
         
         DrawTextureRec(
-            textura, 
-            Rectangle{ 0, 0, (float)textura.width, (float)textura.height },
+            animal.texturaAnimal, 
+            (Rectangle){ 0, 0, (float)animal.texturaAnimal.width, (float)animal.texturaAnimal.height },
             Vector2{ X, Y },
             RAYWHITE
         );
@@ -160,7 +176,7 @@ int main() {
         EndDrawing();
     }
 
-    UnloadTexture(textura);  // Libera a memória da textura carregada
+    UnloadTexture(animal.texturaAnimal);  // Libera a memória da textura carregada
     CloseWindow();  // Fecha a janela
 
     return 0;
