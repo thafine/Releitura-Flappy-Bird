@@ -17,6 +17,10 @@ bool CowGame = false;
 
 typedef struct Animal {
     Rectangle texturaRect;
+    Rectangle boxA;
+    Rectangle boxB;
+    Vector2 center;
+    int radius;
     Texture2D texturaAnimal;
     float X;
     float Y;
@@ -155,8 +159,8 @@ void Game(Animal animal) {
     int screenUpperLimit = 40;
     bool pause = false;
 
-    Rectangle boxP = { 0, 0, 100, 80 };
     Rectangle boxCollision = { 0 };
+    bool collisionA = false;
     bool collisionB = false;
     bool collisionC = false;
     
@@ -176,8 +180,12 @@ void Game(Animal animal) {
         if (IsKeyPressed('P')) pause = !pause;
         
         score = 0;
-        boxP.x = X+200;
-        boxP.y = Y+100;
+        animal.boxA.x = X+170;
+        animal.boxA.y = Y+125;
+        animal.boxB.x = X+160;
+        animal.boxB.y = Y+195;
+        animal.center.x = X+270;
+        animal.center.y = Y+160;
         
         if (!pause && vivo) {
             canosVelocidadeX = 2;
@@ -203,9 +211,11 @@ void Game(Animal animal) {
 
         // Colisões
         for (int i = 0; i < 200; i++) {
-            collisionB = CheckCollisionRecs(boxP, canos[i].rec);
-            if (collisionB ) {
-                boxCollision = GetCollisionRec(animal.texturaRect, canos[i].rec);
+            collisionA = CheckCollisionRecs(animal.boxA, canos[i].rec);
+            collisionB = CheckCollisionRecs(animal.boxB, canos[i].rec);
+            collisionC = CheckCollisionCircleRec(animal.center,animal.radius, canos[i].rec);
+            if (collisionA || collisionB || collisionC) {
+                //boxCollision = GetCollisionRec(animal.texturaRect, canos[i].rec);
                 vivo = false;
 
             }
@@ -271,7 +281,9 @@ void Game(Animal animal) {
         }
 
 
-        DrawRectangleRec(boxP, RED);   
+        DrawCircle(animal.center.x, animal.center.y, animal.radius, RED);
+        DrawRectangleRec(animal.boxA, RED);
+        DrawRectangleRec(animal.boxB, RED);     
         DrawTextureRec(
             animal.texturaAnimal,
             (Rectangle){ 0, 0, (float)animal.texturaAnimal.width, (float)animal.texturaAnimal.height },
@@ -295,7 +307,7 @@ void Game(Animal animal) {
         }
        
         DrawText(TextFormat("%04i", score), 20, 20, 40, WHITE);
-        DrawText(TextFormat("HI-SCORE Pontuação: %04i", hiScore), 20, 70, 20, LIGHTGRAY);
+        DrawText(TextFormat("HI-SCORE: %04i", hiScore), 20, 70, 20, LIGHTGRAY);
         DrawText(TextFormat("%02i:%02i", min, seg), 700, 20, 30, WHITE);
         EndDrawing();
     }
@@ -328,6 +340,10 @@ void ShowCreditsInterface() {
 
 void ShowPigGame(Animal *animal) {
     animal->texturaAnimal = LoadTexture("personagem1.png");
+    animal->boxA = { 0, 0, 80, 70 };
+    animal->boxB = { 0, 0, 20, 20 };
+    animal->center = { 0, 500 };
+    animal->radius = { 30 };  
     animal->X = 0;
     animal->Y = 300;
     animal->velocidade = 0;
