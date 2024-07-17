@@ -24,6 +24,7 @@ typedef struct Animal {
     Texture2D texturaAnimal;
     float X;
     float Y;
+    int cod;
     float velocidade;
     bool vivo;
 } Animal;
@@ -180,12 +181,39 @@ void Game(Animal animal) {
         if (IsKeyPressed('P')) pause = !pause;
         
         score = 0;
-        animal.boxA.x = X+170;
-        animal.boxA.y = Y+125;
-        animal.boxB.x = X+160;
-        animal.boxB.y = Y+195;
-        animal.center.x = X+270;
-        animal.center.y = Y+160;
+        
+        if (animal.cod == 1){
+            animal.boxA.x = X+170;
+            animal.boxA.y = Y+125;
+            animal.boxB.x = X+155;
+            animal.boxB.y = Y+195;
+            animal.center.x = X+270;
+            animal.center.y = Y+160;
+        }
+        if (animal.cod == 2){
+            animal.boxA.x = X+115;
+            animal.boxA.y = Y+130;
+            animal.boxB.x = X+164;
+            animal.boxB.y = Y+195;
+            animal.center.x = X+188;
+            animal.center.y = Y+140;
+        }
+        if (animal.cod == 3){
+            animal.boxA.x = X+58;
+            animal.boxA.y = Y+120;
+            animal.boxB.x = X+75;
+            animal.boxB.y = Y+160;
+            animal.center.x = X+132;
+            animal.center.y = Y+95;
+        }
+        if (animal.cod == 4){
+            animal.boxA.x = X+50;
+            animal.boxA.y = Y+110;
+            animal.boxB.x = X+130;
+            animal.boxB.y = Y+140;
+            animal.center.x = X+140;
+            animal.center.y = Y+110;
+        }
         
         if (!pause && vivo) {
             canosVelocidadeX = 2;
@@ -280,10 +308,9 @@ void Game(Animal animal) {
             );
         }
 
-
-        DrawCircle(animal.center.x, animal.center.y, animal.radius, RED);
-        DrawRectangleRec(animal.boxA, RED);
-        DrawRectangleRec(animal.boxB, RED);     
+        DrawCircle(animal.center.x, animal.center.y, animal.radius, DARKBLUE);
+        DrawRectangleRec(animal.boxA, DARKBLUE);
+        DrawRectangleRec(animal.boxB, DARKBLUE);     
         DrawTextureRec(
             animal.texturaAnimal,
             (Rectangle){ 0, 0, (float)animal.texturaAnimal.width, (float)animal.texturaAnimal.height },
@@ -348,6 +375,7 @@ void ShowPigGame(Animal *animal) {
     animal->Y = 300;
     animal->velocidade = 0;
     animal->vivo = true;
+    animal->cod = 1;
     Game(*animal);
 }
 
@@ -355,10 +383,15 @@ void ShowChickenGame(Animal *animal) {
     Image image = LoadImage("personagem2.gif");  // Carregar imagem original
     ImageResize(&image, 250, 250);          // Redimensionar imagem
     animal->texturaAnimal =  LoadTextureFromImage(image);
+    animal->boxA = { 0, 0, 90, 70 };
+    animal->boxB = { 0, 0, 20, 20 };
+    animal->center = { 0, 500 };
+    animal->radius = { 30 }; 
     animal->X = 0;
     animal->Y = 300;
     animal->velocidade = 0;
     animal->vivo = true;
+    animal->cod = 2;
     Game(*animal);
 }
 
@@ -366,10 +399,15 @@ void ShowDuckGame(Animal *animal) {
     Image image = LoadImage("personagem3.png");  // Carregar imagem original
     ImageResize(&image, 200, 200);          // Redimensionar imagem
     animal->texturaAnimal =  LoadTextureFromImage(image);
+    animal->boxA = { 0, 0, 100, 50 };
+    animal->boxB = { 0, 0, 80, 20 };
+    animal->center = { 0, 500 };
+    animal->radius = { 30 };  
     animal->X = 0;
     animal->Y = 300;
     animal->velocidade = 0;
     animal->vivo = true;
+    animal->cod = 3;
     Game(*animal);
 }
 
@@ -377,10 +415,15 @@ void ShowCowGame(Animal *animal) {
     Image image = LoadImage("personagem4.png");  // Carregar imagem original
     ImageResize(&image, 250, 250);          // Redimensionar imagem
     animal->texturaAnimal =  LoadTextureFromImage(image);
+    animal->boxA = { 0, 0, 90, 70 };
+    animal->boxB = { 0, 0, 20, 20 };
+    animal->center = { 0, 500 };
+    animal->radius = { 35 };  
     animal->X = 0;
     animal->Y = 300;
     animal->velocidade = 0;
     animal->vivo = true;
+    animal->cod = 4;
     Game(*animal);
 }
 
