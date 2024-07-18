@@ -4,9 +4,12 @@
 #define MAX(a, b) ((a)>(b)? (a) : (b))
 #define MIN(a, b) ((a)<(b)? (a) : (b))
 
+
+// Definição da largura e altura da janela
 const int width = 800;
 const int height = 600;
 
+// Definição de variáveis globais de estado do jogo
 bool inMainInterface = true;
 bool CreditsInterface = false;
 bool inChooseCharacterInterface = false;
@@ -15,6 +18,7 @@ bool ChickenGame = false;
 bool DuckGame = false;
 bool CowGame = false;
 
+// Estrutura que define as propriedades de um animal
 typedef struct Animal {
     Rectangle texturaRect;
     Rectangle boxA;
@@ -29,6 +33,7 @@ typedef struct Animal {
     bool vivo;
 } Animal;
 
+// Declaração de funções que gerenciam o jogo e interfaces
 void Game(Animal animal);
 void ShowPigGame(Animal *animal);
 void ShowChickenGame(Animal *animal);
@@ -41,7 +46,7 @@ int main() {
     int gameScreenWidth = 800;
     int gameScreenHeight = 600;
 
-    // Enable config flags for resizable window and vertical synchro
+    // Configurações iniciais da janela do jogo, configurando para a quando a janela redimensionada
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
     InitWindow(width, height, "Animals Rocket");
     SetWindowMinSize(320, 240);
@@ -56,10 +61,10 @@ int main() {
     Rectangle play = { 276, 324, 191, 83 };
 
     while (!WindowShouldClose()) {  // Loop principal
-        // Compute required framebuffer scaling
+        // Calcula o escalonamento necessário
         float scale = MIN((float)GetScreenWidth()/gameScreenWidth, (float)GetScreenHeight()/gameScreenHeight);
 
-        // Update virtual mouse (clamped mouse value behind game screen)
+        // Atualiza a posição virtual do mouse
         Vector2 mouse = GetMousePosition();
         Vector2 virtualMouse = { 0 };
         virtualMouse.x = (mouse.x - (GetScreenWidth() - (gameScreenWidth*scale))*0.5f)/scale;
@@ -83,8 +88,9 @@ int main() {
             }
 
             BeginTextureMode(target);
-            ClearBackground(RAYWHITE);  // Clear render texture background color
+            ClearBackground(RAYWHITE);  // Limpa a cor de fundo da textura de renderização
 
+            // Desenha textos na tela
             DrawText("If executed inside a window,\nyou can resize the window,\nand see the screen scaling!", 10, 25, 20, WHITE);
             DrawText(TextFormat("Default Mouse: [%i , %i]", (int)mouse.x, (int)mouse.y), 350, 25, 20, GREEN);
             DrawText(TextFormat("Virtual Mouse: [%i , %i]", (int)virtualMouse.x, (int)virtualMouse.y), 350, 55, 20, YELLOW);
@@ -126,7 +132,9 @@ int main() {
     return 0;
 }
 
+// Função principal do jogo, gerencia o movimento e colisões
 void Game(Animal animal) {
+    // Define as propiedades dos animais
     typedef struct Canos {
         Rectangle rec;
         Texture2D texturaCano;
@@ -135,11 +143,11 @@ void Game(Animal animal) {
         bool active;
     } Canos;
 
+    //iniciacao e valores iniciais do jogo
     float X = 0;
     float Y = 300;
     float velocidade = 0;
     bool vivo = true;
-
     int score;
     int hiScore = 0;
     int seg;
@@ -151,7 +159,7 @@ void Game(Animal animal) {
     static Vector2 canosPos[100] = { 0 };
     static int canosVelocidadeX = 0;
  
-    // Inicialização dos canos
+    // Inicializa os canos
     for (int i = 0; i < 100; i++) {
         canosPos[i].x = 600 + 380 * i;
         canosPos[i].y = -GetRandomValue(0, 150);
@@ -160,11 +168,12 @@ void Game(Animal animal) {
     int screenUpperLimit = 40;
     bool pause = false;
 
-    Rectangle boxCollision = { 0 };
+    // Inicialização das tuplas de verificação das colisões
     bool collisionA = false;
     bool collisionB = false;
     bool collisionC = false;
     
+    // Inicializa o tempo a partir do inicio da partida
     float startTime = GetTime();
     float elapsedTime = 0.0f;
 
@@ -180,8 +189,10 @@ void Game(Animal animal) {
         
         if (IsKeyPressed('P')) pause = !pause;
         
+        // Inicia a pontuação da partida sempre em 0
         score = 0;
         
+        // Posiciona os objetos de colisões de cada animal
         if (animal.cod == 1){
             animal.boxA.x = X+170;
             animal.boxA.y = Y+125;
@@ -216,9 +227,11 @@ void Game(Animal animal) {
         }
         
         if (!pause && vivo) {
+            // Define a velocidade dos canos e as posições dos canos
             canosVelocidadeX = 2;
             for (int i = 0; i < 100; i++) canosPos[i].x -= canosVelocidadeX;
 
+            // Vincula cada dois canos para uma posição, uma em cima e outra em baixo
             for (int i = 0; i < 200; i += 2) {
                 canos[i].rec.x = canosPos[i / 2].x;
                 canos[i].rec.y = canosPos[i / 2].y;
@@ -233,26 +246,30 @@ void Game(Animal animal) {
                 canos[i / 2].active = true;
             }
         }
-
+        
+        // Atualiza a posição da textura de acordo com o X e Y
         animal.texturaRect.x = animal.X;
         animal.texturaRect.y = animal.Y;
 
         // Colisões
         for (int i = 0; i < 200; i++) {
+            // Verifica se algum dos blocos de colissões colidiu com algum cano
             collisionA = CheckCollisionRecs(animal.boxA, canos[i].rec);
             collisionB = CheckCollisionRecs(animal.boxB, canos[i].rec);
             collisionC = CheckCollisionCircleRec(animal.center,animal.radius, canos[i].rec);
+            // Muda a condição do animal se a colisão tiver acontecido
             if (collisionA || collisionB || collisionC) {
-                //boxCollision = GetCollisionRec(animal.texturaRect, canos[i].rec);
                 vivo = false;
 
             }
+            // Adiciona a pontuação caso o animal tenha ultrapassado sem colidir
             else if( X > canosPos[i].x && vivo &&  X > canos[i / 2].rec.x){
                 score += 100;
                 if (score > hiScore) hiScore = score;
             }
         }
-
+         
+         // Atualiza a velocidade do animal e delimita o mesmo no limite da tela
          if (vivo && !pause) {
             Y += velocidade;
             velocidade += 0.4;
@@ -266,9 +283,11 @@ void Game(Animal animal) {
             if (Y > 480 || Y < -110) {
                 vivo = false;
             }
+            // Calcula quantos segundo passou desde o inicio da partida
             elapsedTime = GetTime() - startTime;
 
         } else {
+            // Define as variaveis para os estados iniciais, quando o jogo é reiniciado
             if (IsKeyPressed(KEY_R)) {
                 X = 40;
                 Y = 30;
@@ -279,13 +298,15 @@ void Game(Animal animal) {
                 startTime = GetTime();
                 elapsedTime = 0.0f;
                 
+                // Redefine as posições dos canos
                 for (int i = 0; i < 100; i++) {
                     canosPos[i].x = 600 + 400 * i;
                     canosPos[i].y = -GetRandomValue(0, 150);
                 }
             }
         }
-
+        
+        // Calcula os valores do timer
         min = (int)elapsedTime / 60;
         seg = (int)elapsedTime % 60;
                 
@@ -293,6 +314,7 @@ void Game(Animal animal) {
 
         ClearBackground(BLUE);
         
+        //Desenha os canos de cima
         for (int i = 0; i < 100; i++) {
             DrawTextureRec(
                 canoTextura,
@@ -300,6 +322,7 @@ void Game(Animal animal) {
                 (Vector2){ canos[i * 2].rec.x, canos[i * 2].rec.y },
                 WHITE
             );
+            // Desenha os canos de baixo
             DrawTextureRec(
                 canoTextura,
                 (Rectangle){ 148, 0, (float)canoTextura.width, (float)canoTextura.height }, 
@@ -307,10 +330,8 @@ void Game(Animal animal) {
                 WHITE
             );
         }
-
-        DrawCircle(animal.center.x, animal.center.y, animal.radius, DARKBLUE);
-        DrawRectangleRec(animal.boxA, DARKBLUE);
-        DrawRectangleRec(animal.boxB, DARKBLUE);     
+        
+        // Desenha o animal na tela
         DrawTextureRec(
             animal.texturaAnimal,
             (Rectangle){ 0, 0, (float)animal.texturaAnimal.width, (float)animal.texturaAnimal.height },
@@ -318,6 +339,7 @@ void Game(Animal animal) {
             WHITE
         );
         
+        // Desenha a tela de pause
         if (pause) {
             Rectangle pausa = { 200, 225, 400, 104 };
             DrawRectangleRec(pausa, ORANGE);
@@ -325,6 +347,8 @@ void Game(Animal animal) {
             
             DrawText("JOGO PAUSADO", width/2 - MeasureText("JOGO PAUSADO", 40)/2, height/2 - 40, 40, WHITE);
         }
+        
+        // Desenha a tela de perdedor
         if (!vivo) {
             Rectangle perdeu = { 200, 235, 400, 104 };
             DrawRectangleRec(perdeu, RED);
@@ -333,8 +357,10 @@ void Game(Animal animal) {
             DrawText("Aperte R para recomeçar", width/2 - MeasureText("Aperte R para recomeçar", 20)/2, height/2+42 - 40, 20, BLACK);
         }
        
+        // Desenha a pontuação na tela
         DrawText(TextFormat("%04i", score), 20, 20, 40, WHITE);
         DrawText(TextFormat("HI-SCORE: %04i", hiScore), 20, 70, 20, LIGHTGRAY);
+        // Desenha o timer na tela
         DrawText(TextFormat("%02i:%02i", min, seg), 700, 20, 30, WHITE);
         EndDrawing();
     }
@@ -369,11 +395,7 @@ void ShowPigGame(Animal *animal) {
     animal->texturaAnimal = LoadTexture("personagem1.png");
     animal->boxA = { 0, 0, 80, 70 };
     animal->boxB = { 0, 0, 20, 20 };
-    animal->center = { 0, 500 };
-    animal->radius = { 30 };  
-    animal->X = 0;
-    animal->Y = 300;
-    animal->velocidade = 0;
+    animal->radius = { 30 };
     animal->vivo = true;
     animal->cod = 1;
     Game(*animal);
@@ -385,11 +407,7 @@ void ShowChickenGame(Animal *animal) {
     animal->texturaAnimal =  LoadTextureFromImage(image);
     animal->boxA = { 0, 0, 90, 70 };
     animal->boxB = { 0, 0, 20, 20 };
-    animal->center = { 0, 500 };
-    animal->radius = { 30 }; 
-    animal->X = 0;
-    animal->Y = 300;
-    animal->velocidade = 0;
+    animal->radius = { 30 };
     animal->vivo = true;
     animal->cod = 2;
     Game(*animal);
@@ -401,11 +419,7 @@ void ShowDuckGame(Animal *animal) {
     animal->texturaAnimal =  LoadTextureFromImage(image);
     animal->boxA = { 0, 0, 100, 50 };
     animal->boxB = { 0, 0, 80, 20 };
-    animal->center = { 0, 500 };
     animal->radius = { 30 };  
-    animal->X = 0;
-    animal->Y = 300;
-    animal->velocidade = 0;
     animal->vivo = true;
     animal->cod = 3;
     Game(*animal);
@@ -417,11 +431,7 @@ void ShowCowGame(Animal *animal) {
     animal->texturaAnimal =  LoadTextureFromImage(image);
     animal->boxA = { 0, 0, 90, 70 };
     animal->boxB = { 0, 0, 20, 20 };
-    animal->center = { 0, 500 };
     animal->radius = { 35 };  
-    animal->X = 0;
-    animal->Y = 300;
-    animal->velocidade = 0;
     animal->vivo = true;
     animal->cod = 4;
     Game(*animal);
